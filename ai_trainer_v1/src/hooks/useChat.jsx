@@ -52,7 +52,7 @@ export const ChatProvider = ({ children }) => {
 
   const chat = async (query) => {
     setInteractionLoading(true); // Set interaction loading to true
-    const response = await fetch(`${backendUrl}/api/interact-with-ai/`, {
+    const response = await fetch(`https://${backendUrl}/api/interact-with-ai/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
