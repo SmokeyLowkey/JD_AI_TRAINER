@@ -1,6 +1,6 @@
 // src/context/ChatContext.jsx
 import { createContext, useContext, useEffect, useState } from "react";
-const backendUrl = import.meta.env.VITE_BACKEND_URL 
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const ChatContext = createContext();
 const getSessionId = () => {
@@ -14,26 +14,28 @@ const getSessionId = () => {
 
 const isClarifyingQuestion = (query) => {
   const clarifyingKeywords = [
-    'more info',
-    'clarify',
-    'explain',
-    'details',
-    'information',
-    'what do you mean',
-    'can you elaborate',
-    'could you elaborate',
-    'tell me more',
-    'please explain',
-    'located',
-    'machine',
-    'looking for',
-    'serial',
-    'specific',
-    'specificaly',
-    'multiple',
+    "more info",
+    "clarify",
+    "explain",
+    "details",
+    "information",
+    "what do you mean",
+    "can you elaborate",
+    "could you elaborate",
+    "tell me more",
+    "please explain",
+    "located",
+    "machine",
+    "looking for",
+    "serial",
+    "specific",
+    "specificaly",
+    "multiple",
   ];
 
-  return clarifyingKeywords.some(keyword => query.toLowerCase().includes(keyword));
+  return clarifyingKeywords.some((keyword) =>
+    query.toLowerCase().includes(keyword)
+  );
 };
 
 export const ChatProvider = ({ children }) => {
@@ -50,42 +52,58 @@ export const ChatProvider = ({ children }) => {
   const [animationUrl, setAnimationUrl] = useState(null);
 
   const chat = async (query) => {
-    setInteractionLoading(true); // Set interaction loading to true
-    const response = await fetch(`https://${backendUrl}/api/interact-with-ai/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ query, session_id: sessionId, incorrect_attempts: incorrectAttempts}),
-    });
-    const data = await response.json();
-
-    const partNumberCorrect = data.part_number_correct;
-    if (partNumberCorrect) {
-      setShowPopUp(true);
-    } else if (!isClarifyingQuestion(query)) {
-      setIncorrectAttempts((prev) => prev + 1);
-      if (incorrectAttempts + 1 >= 3) {
-        setShowPopUp(true);
+    setInteractionLoading(true);
+    try {
+      const response = await fetch(`https://${backendUrl}/api/interact-with-ai`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query,
+          session_id: sessionId,
+          incorrect_attempts: incorrectAttempts,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    }
+      const data = await response.json();
 
-    setMessages((messages) => [
-      ...messages,
-      { id: uuidv4(), role: "user", content: query },
-      { id: uuidv4(), role: "assistant", content: data.response, ...data },
-    ]);
-    setInteractionLoading(false); // Set interaction loading to false
+      const partNumberCorrect = data.part_number_correct;
+      if (partNumberCorrect) {
+        setShowPopUp(true);
+      } else if (!isClarifyingQuestion(query)) {
+        setIncorrectAttempts((prev) => prev + 1);
+        if (incorrectAttempts + 1 >= 3) {
+          setShowPopUp(true);
+        }
+      }
+
+      setMessages((messages) => [
+        ...messages,
+        { id: uuidv4(), role: "user", content: query },
+        { id: uuidv4(), role: "assistant", content: data.response, ...data },
+      ]);
+    } catch (error) {
+      console.error("Error interacting with AI:", error);
+    } finally {
+      setInteractionLoading(false);
+    }
   };
 
   const fetchSignedUrls = async () => {
     setModelLoading(true); // Set model loading to true when fetching URLs
     try {
-      const avatarResponse = await fetch(`https://${backendUrl}/api/avatar_presigned_url`);
+      const avatarResponse = await fetch(
+        `https://${backendUrl}/api/avatar_presigned_url`
+      );
       const avatarData = await avatarResponse.json();
       setAvatarUrl(avatarData.url);
 
-      const animationResponse = await fetch(`https://${backendUrl}/api/animation_presigned_url`);
+      const animationResponse = await fetch(
+        `https://${backendUrl}/api/animation_presigned_url`
+      );
       const animationData = await animationResponse.json();
       setAnimationUrl(animationData.url);
     } catch (error) {
@@ -108,8 +126,7 @@ export const ChatProvider = ({ children }) => {
     setMessages((messages) => messages.slice(1));
   };
 
-  useEffect(() => {
-  }, [messages]);
+  useEffect(() => {}, [messages]);
 
   useEffect(() => {
     fetchSignedUrls();
@@ -133,7 +150,7 @@ export const ChatProvider = ({ children }) => {
         audioPlaying,
         setAudioPlaying,
         avatarUrl,
-        animationUrl
+        animationUrl,
       }}
     >
       {children}
@@ -150,9 +167,9 @@ export const useChat = () => {
 };
 
 function uuidv4() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      const r = (Math.random() * 16) | 0,
-        v = c === 'x' ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
-    });
-  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0,
+      v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}

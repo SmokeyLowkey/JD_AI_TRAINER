@@ -112,6 +112,11 @@ def interact_with_ai(request):
 
     if not user_query:
         return Response({"error": "Query is required."}, status=status.HTTP_400_BAD_REQUEST)
+    # Log the received data
+    print(f"User Query: {user_query}")
+    print(f"Session ID: {session_id}")
+    print(f"Incorrect Attempts: {incorrect_attempts}")
+
 
     try:
         # Get or create the conversation
