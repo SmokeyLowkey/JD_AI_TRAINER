@@ -15,7 +15,6 @@ from rest_framework.response import Response
 from rest_framework import status
 from data.models import MachineModel, Part, Conversation
 from data.serializers import MachineModelSerializer, PartSerializer
-from django.views.decorators.csrf import csrf_exempt
 
 # Initialize the OpenAI client
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
@@ -104,7 +103,7 @@ def synthesize_speech_with_elevenlabs(text, api_key, output_file_path, voice_id=
         return {"status": "success"}
     else:
         raise Exception(f"Error: {response.json().get('message', 'Unknown error')}")
-@csrf_exempt
+
 @api_view(['POST'])
 def interact_with_ai(request):
     user_query = request.data.get('query', '')
