@@ -69,15 +69,16 @@ export const ChatProvider = ({ children }) => {
 
   const chat = async (query) => {
     setInteractionLoading(true);
+    const csrftoken = getCookie("csrftoken"); // Get the CSRF token from cookies
+    console.log("this is the token: ", csrftoken);
     try {
-      const csrftoken = getCookie('csrftoken'); // Get the CSRF token from cookies
       const response = await fetch(
         `https://${backendUrl}/api/interact-with-ai`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-CSRFToken": csrftoken
+            "X-CSRFToken": csrftoken,
           },
           body: JSON.stringify({
             query,
