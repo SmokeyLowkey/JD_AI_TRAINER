@@ -1,11 +1,6 @@
 // src/context/ChatContext.jsx
 import { createContext, useContext, useEffect, useState } from "react";
-A = import.meta.env.A;
-B = import.meta.env.B;
-C = import.meta.env.C;
-D = import.meta.env.D;
-E = import.meta.env.E;
-const backendUrl = `${A}-${B}-${C}.${D}.${E}`;
+const backendUrl = import.meta.env.VITE_BACKEND_URL 
 
 const ChatContext = createContext();
 const getSessionId = () => {
@@ -86,11 +81,11 @@ export const ChatProvider = ({ children }) => {
   const fetchSignedUrls = async () => {
     setModelLoading(true); // Set model loading to true when fetching URLs
     try {
-      const avatarResponse = await fetch(`${backendUrl}/api/avatar_presigned_url`);
+      const avatarResponse = await fetch(`https://${backendUrl}/api/avatar_presigned_url`);
       const avatarData = await avatarResponse.json();
       setAvatarUrl(avatarData.url);
 
-      const animationResponse = await fetch(`${backendUrl}/api/animation_presigned_url`);
+      const animationResponse = await fetch(`https://${backendUrl}/api/animation_presigned_url`);
       const animationData = await animationResponse.json();
       setAnimationUrl(animationData.url);
     } catch (error) {
