@@ -17,6 +17,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from data.models import MachineModel, Part, Conversation
 from data.serializers import MachineModelSerializer, PartSerializer
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Initialize the OpenAI client
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
@@ -117,10 +120,9 @@ def interact_with_ai(request):
 
     if not user_query:
         return Response({"error": "Query is required."}, status=status.HTTP_400_BAD_REQUEST)
-    # Log the received data
-    print(f"User Query: {user_query}")
-    print(f"Session ID: {session_id}")
-    print(f"Incorrect Attempts: {incorrect_attempts}")
+    logger.info(f"User Query: {user_query}")
+    logger.info(f"Session ID: {session_id}")
+    logger.info(f"Incorrect Attempts: {incorrect_attempts}")
 
 
     try:
