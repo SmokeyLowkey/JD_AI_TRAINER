@@ -92,11 +92,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'API.wsgi.application'
 
 CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGIN').split(',')
-<<<<<<< HEAD
-# CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS')
-
-=======
->>>>>>> 46d87a4b24b49d9e7280b545b4edb0742dfff80d
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
