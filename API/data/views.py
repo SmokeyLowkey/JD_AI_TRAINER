@@ -3,6 +3,7 @@ import os
 import random
 import uuid
 import boto3
+import requests
 from django.http import JsonResponse
 from django.utils import timezone
 from datetime import timedelta
@@ -14,7 +15,6 @@ from rest_framework.response import Response
 from rest_framework import status
 from data.models import MachineModel, Part, Conversation
 from data.serializers import MachineModelSerializer, PartSerializer
-import azure.cognitiveservices.speech as speechsdk
 
 # Initialize the OpenAI client
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
@@ -83,34 +83,26 @@ def generate_random_serial_number(serial_start, serial_end):
         else:
             raise ValueError("Invalid serial number format")
         
-def synthesize_speech_with_visemes(text, api_key, region, output_file_path):
-    # Ensure the directory exists
-    os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
-    speech_config = speechsdk.SpeechConfig(subscription=api_key, region=region)
-    speech_config.speech_synthesis_voice_name = "en-CA-LiamNeural"  # Set the voice name @ https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts
-    audio_config = speechsdk.audio.AudioConfig(filename=output_file_path)
+def synthesize_speech_with_elevenlabs(text, api_key, output_file_path, voice_id="pNInz6obpgDQGcFmaJgB"):
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+    headers = {
+        "xi-api-key": api_key,
+        "Content-Type": "application/json"
+    }
+    data = {
+        "text": text,
+        "output_format": "mp3"
+    }
 
-    synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=audio_config)
+    response = requests.post(url, headers=headers, json=data)
 
-    viseme_data = []
-
-    def viseme_cb(evt):
-        viseme_data.append({
-            'audio_offset': evt.audio_offset/10000,
-            'viseme_id': evt.viseme_id
-        })
-
-    synthesizer.viseme_received.connect(viseme_cb)
-    result = synthesizer.speak_text_async(text).get()
-    
-    if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
-        print("Speech synthesized successfully")
-    elif result.reason == speechsdk.ResultReason.Canceled:
-        cancellation_details = result.cancellation_details
-        print(f"Speech synthesis canceled: {cancellation_details.reason}")
-        if cancellation_details.reason == speechsdk.CancellationReason.Error:
-            print(f"Error details: {cancellation_details.error_details}")
-    return viseme_data
+    if response.status_code == 200:
+        os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
+        with open(output_file_path, 'wb') as audio_file:
+            audio_file.write(response.content)
+        return {"status": "success"}
+    else:
+        raise Exception(f"Error: {response.json().get('message', 'Unknown error')}")
 
 @api_view(['POST'])
 def interact_with_ai(request):
@@ -148,6 +140,7 @@ def interact_with_ai(request):
                 "Do not reveal the part number, but check if the representative provides the correct one."
                 "If the representative provides an incorrect part number respond with: 'I just looked it up and that is not the correct part I am looking for!' "
                 "If the representative provides a correct part number, then respond with: 'That is correct, thank you!' "
+                "Also, provide a facial expression that matches your response. The available facial expressions are: smile, sad, angry, surprised, funnyFace, and default. "
             )
             conversation.history.append({"id": str(uuid.uuid4()), "role": "system", "content": initial_prompt})
             conversation.history.append({"id": str(uuid.uuid4()), "role": "system", "content": f"Expected part number: {part_to_find.part_number}"})
@@ -185,6 +178,13 @@ def interact_with_ai(request):
         
         ai_response = chat_completion.choices[0].message.content.strip()
         
+        # Determine facial expression based on AI response
+        facial_expression = "default"
+        if "correct, thank you" in ai_response.lower():
+            facial_expression = "smile"
+        elif "not the correct part" in ai_response.lower():
+            facial_expression = "sad"
+        
         if created or 'more info' in user_query.lower():
             selected_animation = "Talking"
         elif 'part_number_correct' in locals() and part_number_correct:
@@ -198,7 +198,7 @@ def interact_with_ai(request):
         # Generate audio and visemes
         audio_file_name = f"message_{uuid.uuid4()}.wav"
         output_file_path = os.path.join('audios', audio_file_name)
-        viseme_data = synthesize_speech_with_visemes(ai_response, settings.AZURE_API_KEY, settings.AZURE_REGION, output_file_path)
+        viseme_data = synthesize_speech_with_elevenlabs(ai_response, settings.ELEVEN_LABS_API_KEY, output_file_path)
 
         
         with open(output_file_path, 'rb') as audio_file:
@@ -218,7 +218,7 @@ def interact_with_ai(request):
             "expected_part_number": expected_part_number if 'expected_part_number' in locals() else None,
             "part_location": part_location if 'part_location' in locals() else None,
             "audio": audio_base64,
-            "visemes": viseme_data,
+            "facial_expression": facial_expression,
             "animation": selected_animation
         }, status=status.HTTP_200_OK)
 
