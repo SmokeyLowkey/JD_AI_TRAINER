@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from corsheaders.defaults import default_headers
 
 # Load environment variables from .env file
 load_dotenv()
@@ -94,6 +95,14 @@ WSGI_APPLICATION = 'API.wsgi.application'
 CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGIN').split(',')
 
 CSRF_TRUSTED_ORIGINS=os.getenv('CSRF_TRUSTED_ORIGINS')
+
+# Allow specific headers
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'X-CSRFToken',
+]
+
+CSRF_COOKIE_NAME = "csrftoken"
+CSRF_HEADER_NAME = "HTTP_X_CSRFTOKEN"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 

@@ -51,40 +51,21 @@ export const ChatProvider = ({ children }) => {
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [animationUrl, setAnimationUrl] = useState(null);
 
-  // Function to get the CSRF token
-  function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== "") {
-      const cookies = document.cookie.split(";");
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        // Does this cookie string begin with the name we want?
-        if (cookie.substring(0, name.length + 1) === name + "=") {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
-      }
+  const getCsrfToken = async () => {
+    try {
+      const response = await fetch(`https://${backendUrl}/api/get-csrf-token/`);
+      const data = await response.json();
+      return data.csrfToken;
+    } catch (error) {
+      console.error("Error fetching CSRF token:", error);
     }
-    return cookieValue;
-  }
-
-  // Function to ensure the CSRF token is available
-  const ensureCsrfToken = async () => {
-    let csrftoken = getCookie("csrftoken");
-    if (!csrftoken) {
-      await fetch(`https://${backendUrl}/api/get-csrf-token/`, {
-        method: "GET",
-        credentials: "same-origin",
-      });
-      csrftoken = getCookie("csrftoken");
-    }
-    return csrftoken;
   };
 
   const chat = async (query) => {
-    const csrftoken = await ensureCsrfToken();
     setInteractionLoading(true);
     try {
+      const csrftoken = await getCsrfToken();
+      console.log("CSRF Token:", csrftoken); // Logging the CSRF token
       const response = await fetch(
         `https://${backendUrl}/api/interact-with-ai`,
         {
