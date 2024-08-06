@@ -1,7 +1,11 @@
 // src/context/ChatContext.jsx
 import { createContext, useContext, useEffect, useState } from "react";
-
-const backendUrl = import.meta.env.BACKEND_URL;
+A = import.meta.env.A;
+B = import.meta.env.B;
+C = import.meta.env.C;
+D = import.meta.env.D;
+E = import.meta.env.E;
+const backendUrl = `${A}-${B}-${C}.${D}.${E}`;
 
 const ChatContext = createContext();
 const getSessionId = () => {
