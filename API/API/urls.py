@@ -3,7 +3,7 @@ from django.urls import path, include
 from django.contrib import admin
 from rest_framework.routers import DefaultRouter
 from data.admin import PartAdmin
-from data.views import MachineModelViewSet, PartViewSet, animation_presigned_url, avatar_presigned_url, interact_with_ai
+from data.views import MachineModelViewSet, PartViewSet, animation_presigned_url, avatar_presigned_url, get_csrf_token, interact_with_ai
 
 router = DefaultRouter()
 router.register(r'machine-models', MachineModelViewSet)
@@ -15,5 +15,6 @@ urlpatterns = [
     path('api/', include(router.urls)),  # API URLs
     path('api/interact-with-ai', interact_with_ai, name='interact_with_ai'),
     path('api/avatar_presigned_url', avatar_presigned_url, name='avatar_presigned_url'),
-    path('api/animation_presigned_url', animation_presigned_url, name='animation_presigned_url')
+    path('api/animation_presigned_url', animation_presigned_url, name='animation_presigned_url'),
+    path('api/get-csrf-token/', get_csrf_token, name='get_csrf_token')
 ]

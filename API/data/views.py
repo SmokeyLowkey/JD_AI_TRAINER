@@ -5,6 +5,8 @@ import uuid
 import boto3
 import requests
 from django.http import JsonResponse
+from django.middleware.csrf import get_token
+from django.http import JsonResponse
 from django.utils import timezone
 from datetime import timedelta
 from openai import OpenAI
@@ -26,6 +28,9 @@ class MachineModelViewSet(viewsets.ModelViewSet):
 class PartViewSet(viewsets.ModelViewSet):
     queryset = Part.objects.all()
     serializer_class = PartSerializer
+    
+def get_csrf_token(request):
+    return JsonResponse({'csrfToken': get_token(request)})
     
 def avatar_presigned_url(request):
     s3_client = boto3.client('s3',
