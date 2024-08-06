@@ -51,26 +51,38 @@ export const ChatProvider = ({ children }) => {
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [animationUrl, setAnimationUrl] = useState(null);
 
-  const chat = async (query) => {
-    // Function to get the CSRF token
-    function getCookie(name) {
-      let cookieValue = null;
-      if (document.cookie && document.cookie !== "") {
-        const cookies = document.cookie.split(";");
-        for (let i = 0; i < cookies.length; i++) {
-          const cookie = cookies[i].trim();
-          // Does this cookie string begin with the name we want?
-          if (cookie.substring(0, name.length + 1) === name + "=") {
-            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-            break;
-          }
+  // Function to get the CSRF token
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+      const cookies = document.cookie.split(";");
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        // Does this cookie string begin with the name we want?
+        if (cookie.substring(0, name.length + 1) === name + "=") {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
         }
       }
-      return cookieValue;
     }
+    return cookieValue;
+  }
 
-    // Get the CSRF token
-    const csrftoken = getCookie("csrftoken");
+  // Function to ensure the CSRF token is available
+  const ensureCsrfToken = async () => {
+    let csrftoken = getCookie("csrftoken");
+    if (!csrftoken) {
+      await fetch(`https://${backendUrl}/api/get-csrf-token/`, {
+        method: "GET",
+        credentials: "same-origin",
+      });
+      csrftoken = getCookie("csrftoken");
+    }
+    return csrftoken;
+  };
+
+  const chat = async (query) => {
+    const csrftoken = await ensureCsrfToken();
     setInteractionLoading(true);
     try {
       const response = await fetch(
@@ -79,7 +91,7 @@ export const ChatProvider = ({ children }) => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-CSRFToken": csrftoken
+            "X-CSRFToken": csrftoken,
           },
           body: JSON.stringify({
             query,
