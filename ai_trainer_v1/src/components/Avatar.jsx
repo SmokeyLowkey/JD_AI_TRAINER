@@ -116,7 +116,8 @@ let setupMode = false;
 
 export function Avatar(props) {
   const { avatarUrl, animationUrl, modelLoading } = useChat(); // Get the presigned URLs and loading state from context
-
+  // Render nothing while model is loading
+  if (modelLoading) return null;
   const { nodes, materials, scene } = useGLTF(avatarUrl); // Load avatar model using presigned URL
   const { animations } = useGLTF(animationUrl); // Load animations using presigned URL
 
