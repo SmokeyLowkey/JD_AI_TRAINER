@@ -120,9 +120,16 @@ def interact_with_ai(request):
 
     if not user_query:
         return Response({"error": "Query is required."}, status=status.HTTP_400_BAD_REQUEST)
+    
     logger.info(f"User Query: {user_query}")
     logger.info(f"Session ID: {session_id}")
     logger.info(f"Incorrect Attempts: {incorrect_attempts}")
+    logger.info(f"Headers: {request}")
+
+    print(f"User Query: {user_query}")
+    print(f"Session ID: {session_id}")
+    print(f"Incorrect Attempts: {incorrect_attempts}")
+    print(f"Headers: {request}")
 
 
     try:
