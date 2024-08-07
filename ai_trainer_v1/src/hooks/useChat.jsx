@@ -65,7 +65,6 @@ export const ChatProvider = ({ children }) => {
     setInteractionLoading(true);
     try {
       const csrftoken = await getCsrfToken();
-      console.log("CSRF Token:", csrftoken); // Logging the CSRF token
       const response = await fetch(
         `https://${backendUrl}/api/interact-with-ai`,
         {

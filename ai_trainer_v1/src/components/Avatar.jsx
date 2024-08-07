@@ -155,7 +155,6 @@ export function Avatar(props) {
     }
 
     setProcessedMessageId(latestMessage.id); // Mark this message as processed
-    console.log(latestMessage.id)
 
 
     if (!latestMessage) {
