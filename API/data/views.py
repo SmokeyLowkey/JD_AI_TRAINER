@@ -190,10 +190,15 @@ def interact_with_ai(request):
         conversation.history.append({"id": str(uuid.uuid4()), "role": "user", "content": user_query})
                 
         # Generate a prompt for the AI including the conversation history
-        chat_completion = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=conversation.history
-        )
+        try:
+            chat_completion = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=conversation.history
+            )
+        except Exception as e:
+            logger.error(f"Error with OpenAI API: {str(e)}")
+            return Response({"error": "Error with AI service"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
         
         ai_response = chat_completion.choices[0].message.content.strip()
         
@@ -217,14 +222,19 @@ def interact_with_ai(request):
         # Generate audio and visemes
         audio_file_name = f"message_{uuid.uuid4()}.wav"
         output_file_path = os.path.join('audios', audio_file_name)
-        viseme_data = synthesize_speech_with_elevenlabs(ai_response, settings.ELEVEN_LABS_API_KEY, output_file_path)
+        try:
+            viseme_data = synthesize_speech_with_elevenlabs(ai_response, settings.ELEVEN_LABS_API_KEY, output_file_path)
+        except Exception as e:
+            logger.error(f"Error synthesizing speech: {str(e)}")
+            return Response({"error": "Error with speech synthesis"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        
-        with open(output_file_path, 'rb') as audio_file:
-            audio_content = audio_file.read()
-        
-        audio_base64 = base64.b64encode(audio_content).decode('utf-8')
-
+        try:
+            with open(output_file_path, 'rb') as audio_file:
+                audio_content = audio_file.read()
+            audio_base64 = base64.b64encode(audio_content).decode('utf-8')
+        except Exception as e:
+            logger.error(f"Error reading audio file: {str(e)}")
+            return Response({"error": "Error processing audio file"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         # Save the updated conversation history
         conversation.save()
