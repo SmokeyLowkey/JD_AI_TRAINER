@@ -124,12 +124,12 @@ def interact_with_ai(request):
     logger.info(f"User Query: {user_query}")
     logger.info(f"Session ID: {session_id}")
     logger.info(f"Incorrect Attempts: {incorrect_attempts}")
-    logger.info(f"Headers: {request}")
+    logger.info(f"Headers: {request.headers}")
 
     print(f"User Query: {user_query}")
     print(f"Session ID: {session_id}")
     print(f"Incorrect Attempts: {incorrect_attempts}")
-    print(f"Headers: {request}")
+    print(f"Headers: {request.headers}")
 
 
     try:
@@ -242,8 +242,11 @@ def interact_with_ai(request):
         }, status=status.HTTP_200_OK)
 
     except MachineModel.DoesNotExist:
+        logger.error("Machine model not found.")
         return Response({"error": "Machine model not found."}, status=status.HTTP_404_NOT_FOUND)
     except ValueError as ve:
+        logger.error(f"ValueError: {str(ve)}")
         return Response({"error": str(ve)}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
+        logger.error(f"Exception: {str(e)}")
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
