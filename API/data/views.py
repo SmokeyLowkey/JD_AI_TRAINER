@@ -102,16 +102,23 @@ def synthesize_speech_with_elevenlabs(text, api_key, output_file_path, voice_id=
         "output_format": "mp3"
     }
 
-    response = requests.post(url, headers=headers, json=data)
+    try:
+        response = requests.post(url, headers=headers, json=data)
 
-    if response.status_code == 200:
-        os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
-        with open(output_file_path, 'wb') as audio_file:
-            audio_file.write(response.content)
-        return {"status": "success"}
-    else:
-        raise Exception(f"Error: {response.json().get('message', 'Unknown error')}")
+        if response.status_code == 200:
+            os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
+            with open(output_file_path, 'wb') as audio_file:
+                audio_file.write(response.content)
+            return {"status": "success"}
+        else:
+            error_message = response.json().get('message', 'Unknown error')
+            logger.error(f"Error: {error_message}, Status Code: {response.status_code}, Response: {response.text}")
+            raise Exception(f"Error: {error_message}")
 
+    except requests.RequestException as e:
+        logger.error(f"RequestException: {str(e)}, Response: {e.response.text if e.response else 'No response'}")
+        raise Exception(f"RequestException: {str(e)}")
+    
 @api_view(['POST'])
 def interact_with_ai(request):
     user_query = request.data.get('query', '')
@@ -248,7 +255,8 @@ def interact_with_ai(request):
             "part_location": part_location if 'part_location' in locals() else None,
             "audio": audio_base64,
             "facial_expression": facial_expression,
-            "animation": selected_animation
+            "animation": selected_animation,
+            "viseme_data": viseme_data  # Include viseme_data if necessary
         }, status=status.HTTP_200_OK)
 
     except MachineModel.DoesNotExist:
