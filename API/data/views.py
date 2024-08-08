@@ -99,7 +99,7 @@ def synthesize_speech_with_elevenlabs(text, api_key, output_file_path, voice_id=
     }
     data = {
         "text": text,
-        "output_format": "mp3"
+        "output_format": "wav"
     }
 
     try:
